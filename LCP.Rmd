@@ -1,0 +1,87 @@
+---
+title: "LCP Strinava - Beroe"
+author: "Angel Bogdanov Grigorov"
+date: "Created 10 Oct. 2024, updated `r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+
+In this file I demonstrate the LCP from Trinabos/Strinabos to Beroe.
+
+Two Medieval sources recount the near escape of Emperor Isaac II Angelos from Bulgaria. George Akropolites specifies that Emperor Isaac was laying siege to Tsar Asen at Strinabos, north of the Stara Planina mountain, before he was forced to flee south.
+Niketas Choniates mentions the emperor passed through Kran during his flight across the mountain. Niketas explicitly states that the emperor took the shortest route out of Bulgaria and headed directly for Byzantine Beroe. 
+
+# Load the data
+
+```{r i}
+
+source("LoadData.R")
+
+```
+
+## Plot data
+
+```{r ii}
+
+plot(Territory2); #This is the DEM we need. It includes river Thundza as a barrier and the fords for crossing it. But this file is too big for GitHub and I will ignore it. I don't know any other way how to share it. A simple DEM for the region is enough too. It is not necessary to have the River as a barrier.
+plot(Origo_Destino$geometry, col = "red", pch = 19, add=TRUE); # The dataframe with lat long data for Beroe, Trinabos and Strinabos
+plot(Ridges, col = "blue", add=TRUE) # Because the claim is that the Romans and after the Roman Period the roads were following the ridges of the mountains, so this is the file with the extracted ridges, which will force the model to use them instead of the valleys
+
+```
+
+# Analysis
+
+The used functions is Tobler's Hiking function
+
+```{r iii}
+
+# First aggregate the used territory 10x
+
+Ter2Agg10 <- raster::aggregate(Territory2, fact = 10, fun = mean, na.rm = T)
+
+plot(Ter2Agg10); plot(Origo_Destino$geometry, col = "red", pch = 19, add=TRUE); plot(Ridges, col = "blue", add=TRUE)
+
+```
+
+Most scholars believe that Strinabos is Trinabos, which refers to Tarnovo — the capital of medieval Bulgaria during the 12th century. The mentioned Beroe is modern day Stara Zagora. As stated in Niketas Choniates, Kran lies on the shortest road from Strinabos to Beroe. Using this information, I create a Least Cost Path linking Veliko Tarnovo to Stara Zagora
+
+```{r iv}
+
+# LCP from Trinabos to Beroe, using Tobler's Hiking function only
+
+Trinabos_Beroe <- movecomp(dtm=Ter2Agg10, origin = as(Origo_Destino[2,], "Spatial"), destin=as(Origo_Destino[1,], "Spatial"), choice=c("t"), barrier=Ridges, field = 3, move=8, export = FALSE)
+
+```
+
+But Avramov (1929) challenges the Veliko Tarnovo thesis. According to him Strinabos is not Trinabos (Veliko Tarnovo). So I made the same LCP but this time linking Beroe with the Vasil Avramov's Strinabos. 
+
+```{r v}
+
+# LCP from Strinabos - Beroe
+
+Strinabos_Beroe <- movecomp(dtm=Ter2Agg10, origin = as(Origo_Destino[3,], "Spatial"), destin=as(Origo_Destino[1,], "Spatial"), choice=c("t"), barrier=Ridges, field = 3, move=8, export = FALSE)
+
+```
+
+```{r vi}
+
+# Plot the results
+
+plot(Ter2Agg10); plot(Origo_Destino$geometry, col = "red", pch = 19, add=TRUE); plot(Trinabos_Beroe$LCPs, col = "blue", add=TRUE); plot(Strinabos_Beroe$LCPs, col = "black", add=TRUE)
+
+```
+
+
+
+
+

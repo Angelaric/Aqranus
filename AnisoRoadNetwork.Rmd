@@ -1,0 +1,353 @@
+---
+title: "Anisotropic Road Network Analysis"
+author: "Angel Bogdanov Grigorov"
+date: "Created 10 Feb. 2025, updated `r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+In this file I demonstrate the Anisotropic Road Network Analysis on the base of sfnetwork() function. 
+The calculated distances are the same as those in AqranusIsochrones.Rmd
+
+So, I use sfnetwors() and follow the instructions of Lucas van der Meer from here:
+https://luukvdmeer.github.io/UseR2024/notebook.html#compute-accessibility-to-restaurants
+
+and adapt it for my own needs
+
+# First, loda data
+
+```{r i}
+
+source("LoadData.R")
+
+```
+
+```{r ii}
+
+# Plot the loaded data
+
+plot(Territory); # The territory
+plot(WendelRoads, col="red", add=TRUE); # The Wendel's (2005) roads
+plot(Locations$geometry, cex=2, pch = 19, col="blue", add=TRUE) # The locations
+
+
+```
+
+# Data preparation
+
+We make sure all of the roads are single linestrings, meaning that the different parts of multi-linestrings will be seen as different road segments (note that to do this properly we first need to cast everything to multi-linestrings).
+
+```{r iii}
+
+# Cast to MULTILINESTRING and then to LINESTRING
+
+WendelRoads <- WendelRoads %>%  # The roads
+  st_cast("MULTILINESTRING") %>%
+  st_cast("LINESTRING")
+
+```
+
+```{r iv}
+
+# Check the result
+
+print(WendelRoads)
+
+```
+
+```{r v}
+
+# Now we compute the length in kilometers of the road segments.
+
+WendelRoads$length = sf::st_length(WendelRoads) |>
+  units::set_units("km")
+
+plot(dplyr::select(WendelRoads, length))
+
+```
+
+```{r vi}
+
+# For the pedestrian speed, we define a default speed which we adjust based on the gradient of the road segment. To do so, we first need to estimate the gradient of each raod segment. This requires a Digital Elevation Model (DEM), which basically is a spatial grid covering an area and storing an elevation value for each cell. We use loaded DEM of the Balkans with 30 m resolution. To estimate gradients of linestrings with this DEM, we use the slopes package.
+
+gradients = slopes::slope_raster(WendelRoads, Territory, directed = TRUE) * 100
+
+```
+
+```{r vii}
+
+# Now we can set a speed of each road segment, based on its gradient. We use a default speed of 5 km/h. An uphill gradient decreases this speed, and a downhill gradient increases this speed, all until a given minimum and maximum speed of respectively 2 km/h and 5 km/h.
+
+estimate_pedestrian_speed <- function(gradient, default = 5, max = 6, min = 2) {
+  ifelse(
+    gradient < 0,
+    min(default + 0.3 * abs(gradient), max),  # Light increase on downhill
+    max(default - 0.7 * gradient, min)        # Light decrease on uphill
+  )
+}
+
+WendelRoads$speed <- sapply(gradients, estimate_pedestrian_speed) |>
+  units::set_units("km/h")
+
+# The function is pedestrian modification of the original function for cycling, made by Lucas van der Meer.
+# Modification principle:
+# Base speed: 5 km/h
+# Maximum speed: 6 km/h (on a gentle descent)
+# Minimum speed: 2 km/h (on a steep climb)
+# Descent: Speed increases slightly (0.3 * incline)
+# Climb: Speed decreases more strongly (0.7 * incline), as walking uphill is more labor-intensive
+
+
+# Practicaly this is Tobler's Hiking Function
+
+```
+
+```{r viii}
+
+plot(dplyr::select(WendelRoads, speed))
+
+```
+
+Now we have the lengths and speeds computed, we can simply compute the estimated travel time of pedestrian for each street segment, in minutes.
+
+```{r ix}
+
+WendelRoads$time = units::set_units(WendelRoads$length / WendelRoads$speed, "min") 
+
+```
+
+```{r x}
+
+plot(dplyr::select(WendelRoads, time)) # The non categorised roads
+
+```
+
+In this step, we convert the road centerlines into a routable network structure. This basically means that we make it explicit which street segments share an endpoint, such that we know how roads are connected, and hence, how someone can travel from A to B. This can be done very easily with the sfnetworks package. Note that for now we simply assume each road can be traveled in both directions, and the network is therefore undirected.
+
+```{r xi}
+
+network = sfnetworks::as_sfnetwork(WendelRoads, directed = FALSE)
+plot(network)
+
+```
+
+```{r xii}
+
+par(mar = c(0, 0, 0, 0))
+plot(network, cex = 1, pch = 19, col="red")
+
+```
+
+However, roads are not always mapped with a network structure in mind. It happens often that connected street segments cross each other without sharing an endpoint. This results in many disconnected sets of streets in the network.
+
+```{r xiii}
+
+tidygraph::with_graph(network, tidygraph::graph_component_count()) 
+
+```
+
+```{r xiv}
+
+node_count_all = network |>
+  tidygraph::with_graph(tidygraph::graph_order())
+
+node_count_largest = network |>
+  tidygraph::convert(tidygraph::to_largest_component) |>
+  tidygraph::with_graph(tidygraph::graph_order())
+
+round(node_count_largest / node_count_all * 100)
+
+```
+
+Luckily, the sfnetworks package contains functions to pre-process and clean networks. One of them is to_spatial_subdivision(), which connects streets when they share internal vertices rather than only endpoints. This results in a network that still has some disconnected components (which is to be expected since we cut the network at the buffer boundaries), but with the largest of them containing almost all nodes.
+
+```{r xv}
+
+# I am not sure it is necessary for the roads I loaded but I just follow the examples of the paper 
+
+network = network |>
+  tidygraph::convert(sfnetworks::to_spatial_subdivision)
+
+```
+
+Warning: to_spatial_subdivision assumes attributes are constant over geometries
+
+```{r xvi}
+
+par(mar = c(0, 0, 0, 0))
+plot(network, cex = 1, pch = 19, col="red")
+
+```
+
+```{r xvii}
+
+# The non categorised roads
+tidygraph::with_graph(network, tidygraph::graph_component_count())
+
+```
+
+```{r xviii}
+
+node_count_all = network |>
+  tidygraph::with_graph(tidygraph::graph_order())
+
+node_count_largest = network |>
+  tidygraph::convert(tidygraph::to_largest_component) |>
+  tidygraph::with_graph(tidygraph::graph_order())
+
+round(node_count_largest / node_count_all * 100)
+
+```
+
+Now we can select the largest component without having to worry we loose a lot of data.
+
+```{r xix}
+
+network = network |>
+  tidygraph::convert(tidygraph::to_largest_component)
+
+```
+
+```{r xx}
+
+# I don't see any difference before and after but anyway
+
+par(mar = c(0, 0, 0, 0))
+plot(network, pch = 19, col="red")
+
+```
+
+# Analysis
+
+In this step, we compute a simple cumulative opportunities accessibility metric to find out how many road points can be reached from the starting points within a given time threshold. For that, we use sfnetworks to compute travel times between the starting point and all points across the road in every 500 m, and select those  that are accessible within the time threshold.
+
+It is generally accepted that a person walks 1 km in 12 minutes or 5 km in 1 hour. Accordingly, if Lufisa is 144.9 km away from Kran, I need to input into the code:
+
+144.9 km / 5 km per hour = 28.89 hours,
+which in minutes should be 1,738.8 min (144.9 km × 12 min = 1,738.8 min).
+
+The same applies to the other locations:
+
+Istibuni = 217.7 km × 12 min = 2,612 min
+Farui = 62.2 km × 12 min = 746 min
+
+## Let start with Farui
+
+But first, let load the converted into points Wendel's road sistem as a point shapefile with points in every 500 m so we can use it as features set on the road.
+The file is created in QGIS with Convert Lines to Polygons. In field "Lines" the vectorised Wendel's roads file is loaded. Then check the field "Insert Additional Points". Insert "Distance = 500 m". Check "Add Point Order".In this way we have converted the shapefile from line to points with point in every 500 m. Then leave only the fields "FID", "Shape", "Type", "Shape Lenght" and "PT ID". We will need them. 
+
+```{r xxi}
+
+# Plot it
+
+plot(WendelRoadsPoints$geometry, cex=0.5, pch = 19, col="black")
+
+``` 
+
+```{r xxii}
+
+# Start with Farui
+# Where 62.2 km × 12 min = 746 min
+
+times = network |>
+  sfnetworks::st_network_cost(Locations[2, ], WendelRoadsPoints, weights = "time")
+
+access2 = WendelRoadsPoints[which(times < units::set_units(746, "min")),]
+
+nrow(access2)
+
+```
+
+```{r xxiii}
+
+# Plot the results
+
+plot(network, col="black")
+plot(sf::st_geometry(access2), col = "red", pch = 20, cex=1, add = TRUE)
+plot(Locations[2,], pch = 19, col="blue", add=TRUE, cex = 2)
+
+```
+
+## Continue with Istibuni
+
+```{r xxiv}
+
+plot(network, col="black")
+plot(Locations[3,], pch = 19, col="blue", add=TRUE, cex = 2)
+
+```
+
+```{r xxv}
+
+# Istibuni = 217.7 km × 12 min = 2.612 min
+
+times = network |>
+  sfnetworks::st_network_cost(Locations[3, ], WendelRoadsPoints, weights = "time")
+
+access3 = WendelRoadsPoints[which(times < units::set_units(2612, "min")),]
+
+nrow(access3)
+
+```
+
+```{r xxvi}
+
+plot(network, col="black")
+plot(sf::st_geometry(access3), col = "yellow", pch = 20, cex=1, add = TRUE)
+plot(Locations[3,], pch = 19, col="blue", add=TRUE, cex = 1.5)
+
+```
+
+## End with Lufisa
+
+```{r xxvii}
+
+plot(network, col="black")
+plot(Locations[1,], pch = 19, col="blue", add=TRUE, cex = 2)
+
+```
+
+```{r xxviii}
+
+# From Lufisa to Cran is 144.9  km / 5 km per hour = 28.89 hours, which in minutes should be 1,738.8 min (144.9 km × 12 min = 1,738.8 min).
+
+times = network |>
+  sfnetworks::st_network_cost(Locations[1, ], WendelRoadsPoints, weights = "time")
+
+access1 = WendelRoadsPoints[which(times < units::set_units(1738, "min")),]
+
+nrow(access1)
+
+```
+
+```{r xxix}
+
+# Plot the results
+plot(network, col="black")
+plot(sf::st_geometry(access1), col = "green", pch = 20, cex=1, add = TRUE)
+plot(Locations[1,], pch = 19, col="blue", add=TRUE, cex = 1.5)
+
+```
+
+```{r xxx}
+
+# And finally plot all the results together
+
+plot(network, col="black")
+plot(sf::st_geometry(access2), col = "red", pch = 20, cex=2, add = TRUE);
+plot(sf::st_geometry(access1), col = "green", pch = 20, cex=1, add = TRUE);
+plot(sf::st_geometry(access3), col = "yellow", pch = 20, cex=0.5, add = TRUE);
+plot(Locations, pch = 19, col="blue", add=TRUE, cex = 1.5)
+
+```
+
+

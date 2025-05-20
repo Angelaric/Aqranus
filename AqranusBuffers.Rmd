@@ -1,0 +1,86 @@
+---
+title: "Buffer Analysis"
+author: "Angel Bogdanov Grigorov"
+date: "Created 19 May 2025, updated `r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+In this file I demonstrate the buffer analysis representing the straight distances from the respective cities.
+Acording to Idrisi Aqranus is six days' march from Istibuni (modern-day Ihtiman), 40 miles from Farui (modern-day Stara Zagora), and four days' march from Lufisa (modern-day Lovech). It is generally accepted that 1 mile according to al-Idrisi is approximately one and a half kilometers, and a day’s march is around 23–25 miles. Using those equations we can translate into modern distance units: 217.7 km from Istibuni, 62.2 km from Farui, and 144.9 km from Lufisa.
+In this case, using the buffers with the respective distances Kran should ideally be located in their intersection.
+
+# First, loda data
+
+```{r i}
+
+source("LoadData.R")
+
+```
+
+```{r ii}
+
+# Plot the loaded data
+
+plot(Territory); # The territory
+plot(Locations$geometry, cex=1, pch = 19, col="blue", add=TRUE) # The locations (Lufisa, Farui, Istibuni)
+
+```
+
+# The Analysis
+
+```{r iii}
+# 144.9 km from Lufisa
+
+LufisaBuff <- st_buffer(Locations[1,], dist = 144900)
+
+# 62.2 km from Farui
+
+FaruiBuff <- st_buffer(Locations[2,], dist = 62200)
+
+# and 217.7 km from Istibuni
+
+IstibuniBuff <- st_buffer(Locations[3,], dist = 217700)
+
+```
+
+```{r iV}
+
+# Plot the results
+
+plot(Territory); # The territory
+plot(Locations$geometry, cex=1, pch = 19, col="blue", add=TRUE); # The locations (Lufisa, Farui, Istibuni)
+plot(LufisaBuff, col = NA, border = "yellow", lwd = 2, add = TRUE); 
+plot(FaruiBuff, col = NA, border = "red", lwd = 2, add = TRUE);
+plot(IstibuniBuff, col = NA, border = "green", lwd = 2, add = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
