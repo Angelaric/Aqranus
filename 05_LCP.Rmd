@@ -33,7 +33,7 @@ source("LoadData.R")
 
 ```{r ii}
 
-plot(Territory2); #This is the DEM we need. It includes river Thundza as a barrier and the fords for crossing it. But this file is too big for GitHub and I will ignore it. I don't know any other way how to share it. A simple DEM for the region is enough too. It is not necessary to have the River as a barrier.
+plot(Territory2); #This is the DEM we need. It includes river Tundzha as a barrier and the fords for crossing it. But this file is too big for GitHub and I will ignore it. I don't know any other way how to share it. A simple DEM for the region is enough too. It is not necessary to have the River as a barrier.
 plot(Origo_Destino$geometry, col = "red", pch = 19, add=TRUE); # The dataframe with lat long data for Beroe, Trinabos and Strinabos
 plot(Ridges, col = "blue", add=TRUE) # Because the claim is that the Romans and after the Roman Period the roads were following the ridges of the mountains, so this is the file with the extracted ridges, which will force the model to use them instead of the valleys
 
@@ -59,7 +59,11 @@ Most scholars believe that Strinabos is Trinabos, which refers to Tarnovo — th
 
 # LCP from Trinabos to Beroe, using Tobler's Hiking function only
 
-Trinabos_Beroe <- movecomp(dtm=Ter2Agg10, origin = as(Origo_Destino[2,], "Spatial"), destin=as(Origo_Destino[1,], "Spatial"), choice=c("t"), barrier=Ridges, field = 3, move=8, export = FALSE)
+Trinabos_Beroe <- movecomp(dtm=raster(Territory2),
+                           origin = as(Origo_Destino[2,], "Spatial"), 
+                           destin=as(Origo_Destino[1,], "Spatial"), 
+                           choice=c("t"), barrier=Ridges, 
+                           field = 3, move=8, export = FALSE)
 
 ```
 
@@ -69,7 +73,8 @@ But Avramov (1929) challenges the Veliko Tarnovo thesis. According to him Strina
 
 # LCP from Strinabos - Beroe
 
-Strinabos_Beroe <- movecomp(dtm=Ter2Agg10, origin = as(Origo_Destino[3,], "Spatial"), destin=as(Origo_Destino[1,], "Spatial"), choice=c("t"), barrier=Ridges, field = 3, move=8, export = FALSE)
+Strinabos_Beroe <- movecomp(dtm=raster(Territory2),
+                            origin = as(Origo_Destino[3,], "Spatial"), destin=as(Origo_Destino[1,], "Spatial"), choice=c("t"), barrier=Ridges, field = 3, move=8, export = FALSE)
 
 ```
 
@@ -77,7 +82,10 @@ Strinabos_Beroe <- movecomp(dtm=Ter2Agg10, origin = as(Origo_Destino[3,], "Spati
 
 # Plot the results
 
-plot(Ter2Agg10); plot(Origo_Destino$geometry, col = "red", pch = 19, add=TRUE); plot(Trinabos_Beroe$LCPs, col = "blue", add=TRUE); plot(Strinabos_Beroe$LCPs, col = "black", add=TRUE)
+plot(Territory2); 
+plot(Origo_Destino$geometry, col = "red", pch = 19, add=TRUE); 
+plot(Trinabos_Beroe$LCPs, col = "white", lwd = 2, add=TRUE); 
+plot(Strinabos_Beroe$LCPs, col = "orange", lwd = 2, add=TRUE)
 
 ```
 

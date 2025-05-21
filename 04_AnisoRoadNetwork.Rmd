@@ -37,7 +37,7 @@ source("LoadData.R")
 
 plot(Territory); # The territory
 plot(WendelRoads, col="red", add=TRUE); # The Wendel's (2005) roads
-plot(Locations$geometry, cex=2, pch = 19, col="blue", add=TRUE) # The locations
+plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"),  add=TRUE) # The locations
 
 
 ```
@@ -242,14 +242,15 @@ Farui = 62.2 km × 12 min = 746 min
 
 ## Let start with Farui
 
-But first, let load the converted into points Wendel's road sistem as a point shapefile with points in every 500 m so we can use it as features set on the road.
-The file is created in QGIS with Convert Lines to Polygons. In field "Lines" the vectorised Wendel's roads file is loaded. Then check the field "Insert Additional Points". Insert "Distance = 500 m". Check "Add Point Order".In this way we have converted the shapefile from line to points with point in every 500 m. Then leave only the fields "FID", "Shape", "Type", "Shape Lenght" and "PT ID". We will need them. 
+But first, let load the converted into points Wendel's road system as a point shapefile with point representing every 500 m so we can use it as features set on the road.
+The file is created in QGIS with Convert Lines to Polygons. In field "Lines" the vectorised Wendel's roads file is loaded. Then check the field "Insert Additional Points". Insert "Distance = 500 m". Check "Add Point Order". In this way we have converted the shapefile from linestrings to points. Then leave only the fields "FID", "Shape", "Type", "Shape Length" and "PT ID". We will need them. 
 
 ```{r xxi}
 
 # Plot it
 
-plot(WendelRoadsPoints$geometry, cex=0.5, pch = 19, col="black")
+plot(WendelRoadsPoints$geometry, cex = 0.1, pch = 19, col="black")
+mapview(WendelRoadsPoints)
 
 ``` 
 
@@ -259,7 +260,9 @@ plot(WendelRoadsPoints$geometry, cex=0.5, pch = 19, col="black")
 # Where 62.2 km × 12 min = 746 min
 
 times = network |>
-  sfnetworks::st_network_cost(Locations[2, ], WendelRoadsPoints, weights = "time")
+  tidygraph::activate("edges") %>% 
+  dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
+  sfnetworks::st_network_cost(Locations[2, ], WendelRoadsPoints, weights = "time") 
 
 access2 = WendelRoadsPoints[which(times < units::set_units(746, "min")),]
 
@@ -291,6 +294,8 @@ plot(Locations[3,], pch = 19, col="blue", add=TRUE, cex = 2)
 # Istibuni = 217.7 km × 12 min = 2.612 min
 
 times = network |>
+  tidygraph::activate("edges") %>% 
+  dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
   sfnetworks::st_network_cost(Locations[3, ], WendelRoadsPoints, weights = "time")
 
 access3 = WendelRoadsPoints[which(times < units::set_units(2612, "min")),]
@@ -321,6 +326,8 @@ plot(Locations[1,], pch = 19, col="blue", add=TRUE, cex = 2)
 # From Lufisa to Cran is 144.9  km / 5 km per hour = 28.89 hours, which in minutes should be 1,738.8 min (144.9 km × 12 min = 1,738.8 min).
 
 times = network |>
+  tidygraph::activate("edges") %>% 
+  dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
   sfnetworks::st_network_cost(Locations[1, ], WendelRoadsPoints, weights = "time")
 
 access1 = WendelRoadsPoints[which(times < units::set_units(1738, "min")),]
@@ -343,11 +350,105 @@ plot(Locations[1,], pch = 19, col="blue", add=TRUE, cex = 1.5)
 # And finally plot all the results together
 
 plot(network, col="black")
-plot(sf::st_geometry(access2), col = "red", pch = 20, cex=2, add = TRUE);
-plot(sf::st_geometry(access1), col = "green", pch = 20, cex=1, add = TRUE);
-plot(sf::st_geometry(access3), col = "yellow", pch = 20, cex=0.5, add = TRUE);
+plot(sf::st_geometry(access2), col = "red", pch = 20, cex=2, add = TRUE, alpha = 0.5);
+plot(sf::st_geometry(access1), col = "yellow", pch = 20, cex=1, add = TRUE, alpha = 0.5);
+plot(sf::st_geometry(access3), col = "green", pch = 20, cex=0.5, add = TRUE, alpha = 0.5);
 plot(Locations, pch = 19, col="blue", add=TRUE, cex = 1.5)
+
 
 ```
 
+```{r mapview-result-points}
+
+mapview(WendelRoads, lwd = 0.5) + 
+mapview(access1, col.regions = "yellow", layer.name = "Lufisa") +
+mapview(access2, col.regions = "red", layer.name = "Farui") +
+mapview(access3, col.regions = "green", layer.name = "Istibuni")
+
+```
+
+# combine points into networks
+```{r}
+library(nngeo)
+
+# Connect each point to its nearest neighbor (excluding itself)
+lines_nn1 <- st_connect(x=access1, y=access1, ids = NULL, k = 2)
+
+# Filter out self-connections (if any)
+lines_nn1 <- lines_nn1[unclass(st_length(lines_nn1)) > 0 ] %>% 
+  st_sf()
+
+# repeat for the two other datasets
+# Connect each point to its nearest neighbor (excluding itself)
+lines_nn2 <- st_connect(x=access2, y=access2, ids = NULL, k = 2)
+
+# Filter out self-connections (if any)
+lines_nn2 <- lines_nn2[unclass(st_length(lines_nn2)) > 0 ] %>% 
+  st_sf()
+
+# Connect each point to its nearest neighbor (excluding itself)
+lines_nn3 <- st_connect(x=access3, y=access3, ids = NULL, k = 2)
+
+# Filter out self-connections (if any)
+lines_nn3 <- lines_nn3[unclass(st_length(lines_nn3)) > 0 ] %>% 
+  st_sf()
+
+```
+
+```{r}
+mapview(WendelRoads, lwd = 0.5) + 
+mapview(lines_nn1, color = "yellow", layer.name = "Lufisa") +
+mapview(lines_nn2, color = "red", alpha = 0.7, layer.name = "Farui") +
+mapview(lines_nn3, color = "green", alpha = 0.7, layer.name = "Istibuni")
+
+```
+
+
+```{r}
+library(tmap)
+lines_nn1$source <- "Lufisa"
+lines_nn1$lwidth <- 3
+lines_nn2$source <- "Farui"
+lines_nn2$lwidth <- 1
+lines_nn3$source <- "Istibuni"
+lines_nn3$lwidth <- 2
+lines_all <- bind_rows(lines_nn3, lines_nn1, lines_nn2)
+
+tmap_mode("plot")
+tm_shape(Territory) +
+  tm_raster(col.scale = tm_scale_continuous(),
+            palette = "brewer.greys", 
+            col.legend = "Elevation / Index") +
+tm_shape(lines_all) +
+  tm_lines(col = "source",# lty = "linetype", 
+           lwd = "lwidth",    
+           palette = c("Farui" = "red", "Istibuni" = "green", "Lufisa" = "yellow"),
+       
+           col.legend = "Source") +
+tm_layout(
+  legend.outside = TRUE,
+  legend.title.size = 1.1,
+  legend.text.size = 0.9
+)
+
+
+
+# Set tmap to interactive mode (like leaflet)
+tmap_mode("view")
+
+# tm_shape(Territory)+
+#     tm_raster(style = "cont", palette = "Greys", title = "Elevation / Index")+
+tm_shape(lines_nn3) +
+  tm_lines(col = "green", lwd = 1, lty = "dashed", group = "Istibuni")+
+tm_shape(lines_nn1) +
+  tm_lines(col = "yellow", lwd = 3, lty = "solid", group = "Lufisa") +
+tm_shape(lines_nn2) +
+  tm_lines(col = "red", lwd = 2, lty = "dashed", group = "Farui") +
+tm_layout(
+    legend.outside = TRUE,
+    legend.title.size = 1.1,
+    legend.text.size = 0.9
+  )
+
+```
 

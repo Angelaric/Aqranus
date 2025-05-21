@@ -20,12 +20,13 @@ In these file I demonstrate the Walking Isochrones analysis. The text of al-Idri
 40 miles from Farui ≈ 62 km / 5 km per h ≈ 12 walking h
 4 days' march from Lufisa ≈ 144 km / 5 km per h ≈ 28 walking h
 
-# First, loda data
+# First, load data and library
 
 ```{r i}
 
 source("LoadData.R")
-
+library(movecost)
+library(raster)
 ```
 
 # Aggregate the Territory
@@ -40,7 +41,7 @@ source("LoadData.R")
 
 # ...
 
-TerAgg10 <- raster::aggregate(Territory, fact = 10, fun = mean, na.rm = T) # Aggregate the Territory 10 times
+TerAgg10 <- aggregate(Territory, fact = 10, fun = mean, na.rm = T) # Aggregate the Territory 10 times
 
 ```
 
@@ -50,7 +51,7 @@ TerAgg10 <- raster::aggregate(Territory, fact = 10, fun = mean, na.rm = T) # Agg
 
 # Let's visualise
 
-plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col="red", add=TRUE)
+plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col=c("yellow","red", "green"), add=TRUE)
 
 ```
 
@@ -62,31 +63,55 @@ plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col="red", add=TRUE)
 # If Lufisa is 144.9 from Aqranus it is  144.9 km / 5 km per h = 28.89 hours, which represented as minutes should be 1738.8 min (144.9 km х 12 min = 1738.8).
 # Respectively for the other cities down
 
-LufisaIso <- movebound(dtm=TerAgg10, origin=as(Locations[1, ], "Spatial"), cont.value = 1739, time = "m", move=8, funct = "t", cogn.slp = TRUE, export = TRUE) 
+LufisaIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                       origin=as(Locations[1, ], "Spatial"), 
+                       cont.value = 1739, time = "m", move=8, 
+                       funct = "t", cogn.slp = TRUE, export = FALSE) # export fails so do it manually 
 
+# Visual check and export isoline vector
+LufisaIso$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
 ```
 
 ```{r v}
 
-FaruiIso <- movebound(dtm=TerAgg10, origin=as(Locations[2, ], "Spatial"), cont.value = 746, time = "m", move=8, funct = "t", cogn.slp = TRUE, export = TRUE) 
+FaruiIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                      origin=as(Locations[2, ], "Spatial"), 
+                      cont.value = 746, time = "m", move=8, funct = "t", 
+                      cogn.slp = TRUE, export = FALSE) 
 
+# Visual check and export isoline vector
+FaruiIso$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
 ```
 
 ```{r vi}
 
-IstibuniIso <- movebound(dtm=TerAgg10, origin=as(Locations[3, ], "Spatial"), cont.value = 2612, time = "m", move=8, funct = "t", cogn.slp = TRUE, export = TRUE) 
+IstibuniIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                         origin=as(Locations[3, ], "Spatial"), cont.value = 2612, 
+                         time = "m", move=8, funct = "t", 
+                         cogn.slp = TRUE, export = FALSE) 
+
+# Visual check and export isoline vector
+IstibuniIso$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
 
 ```
 
 ```{r vii}
-
 # Plot the results
 
 plot(Territory); # The territory
-plot(Locations$geometry, cex=1, pch = 19, col="blue", add=TRUE); # The locations (Lufisa, Farui, Istibuni)
-plot(LufisaIso$isolines, col="yellow", add = TRUE); 
-plot(FaruiIso$isolines, col="red", add = TRUE);
-plot(IstibuniIso$isolines, col="green", add = TRUE)
+plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TRUE); # The locations (Lufisa, Farui, Istibuni)
+plot(LufisaIso$isolines, col="yellow", lwd=2,add = TRUE); 
+plot(FaruiIso$isolines, col="red", lwd =2,add = TRUE);
+plot(IstibuniIso$isolines, col="green", lwd=2, add = TRUE)
 
 ```
 

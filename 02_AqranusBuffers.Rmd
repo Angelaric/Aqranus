@@ -32,7 +32,7 @@ source("LoadData.R")
 # Plot the loaded data
 
 plot(Territory); # The territory
-plot(Locations$geometry, cex=1, pch = 19, col="blue", add=TRUE) # The locations (Lufisa, Farui, Istibuni)
+plot(Locations$geometry, cex=1, pch = 19, col="yellow", add=TRUE) # The locations (Lufisa, Farui, Istibuni)
 
 ```
 
@@ -54,11 +54,10 @@ IstibuniBuff <- st_buffer(Locations[3,], dist = 217700)
 ```
 
 ```{r iV}
-
 # Plot the results
-
+options(scipen =999)
 plot(Territory); # The territory
-plot(Locations$geometry, cex=1, pch = 19, col="blue", add=TRUE); # The locations (Lufisa, Farui, Istibuni)
+plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TRUE); # The locations (Lufisa, Farui, Istibuni)
 plot(LufisaBuff, col = NA, border = "yellow", lwd = 2, add = TRUE); 
 plot(FaruiBuff, col = NA, border = "red", lwd = 2, add = TRUE);
 plot(IstibuniBuff, col = NA, border = "green", lwd = 2, add = TRUE)
