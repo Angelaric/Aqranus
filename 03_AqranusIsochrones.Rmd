@@ -1,0 +1,118 @@
+---
+title: "Walking Isochrones Analysis"
+author: "Angel Bogdanov Grigorov"
+date: "Created 10 Oct. 2024, updated `r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+    highlight: tango
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+In these file I demonstrate the Walking Isochrones analysis. The text of al-Idrisi states that Aqranus is six days' march from Istibuni (modern-day Ihtiman), 40 miles from Farui (modern-day Stara Zagora), and four days' march from Lufisa (modern-day Lovech). One mile according to al-Idrisi is approximately one and a half kilometers, and a day’s march is around 23–25 miles. Using those equations we can translate into modern distance units: 217.7 km from Istibuni, 62.2 km from Farui, and 144.9 km from Lufisa. It is generally accepted it takes circa 12 minutes to walk 1 km or 1 hour to walk 5 km. I transformed the distances into walking hours:
+6 days' march from Istibuni ≈ 217 km / 5 km per h ≈ 43 walking h
+40 miles from Farui ≈ 62 km / 5 km per h ≈ 12 walking h
+4 days' march from Lufisa ≈ 144 km / 5 km per h ≈ 28 walking h
+
+# First, load data and library
+
+```{r i}
+
+source("LoadData.R")
+library(movecost)
+library(raster)
+```
+
+# Aggregate the Territory
+
+```{r ii}
+
+# If the file is too heavy it may be necesary to aggregate the DEM you are using:
+
+# TerAgg2 <- raster::aggregate(Territory, fact = 2, fun = mean, na.rm = T) # Aggregate double the size
+
+# TerAgg3 <- raster::aggregate(Territory, fact = 3, fun = mean, na.rm = T) # Aggregate triple the size
+
+# ...
+
+TerAgg10 <- aggregate(Territory, fact = 10, fun = mean, na.rm = T) # Aggregate the Territory 10 times
+
+```
+
+# Plot the data
+
+```{r iii}
+
+# Let's visualise
+
+plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col=c("yellow","red", "green"), add=TRUE)
+
+```
+
+# The Analysis
+
+```{r iv}
+
+# Because I run the function in minutes, the calculations are as follows:
+# If Lufisa is 144.9 from Aqranus it is  144.9 km / 5 km per h = 28.89 hours, which represented as minutes should be 1738.8 min (144.9 km х 12 min = 1738.8).
+# Respectively for the other cities down
+
+LufisaIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                       origin=as(Locations[1, ], "Spatial"), 
+                       cont.value = 1739, time = "m", move=8, 
+                       funct = "t", cogn.slp = TRUE, export = FALSE) # export fails so do it manually 
+
+# Visual check and export isoline vector
+LufisaIso$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
+```
+
+```{r v}
+
+FaruiIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                      origin=as(Locations[2, ], "Spatial"), 
+                      cont.value = 746, time = "m", move=8, funct = "t", 
+                      cogn.slp = TRUE, export = FALSE) 
+
+# Visual check and export isoline vector
+FaruiIso$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
+```
+
+```{r vi}
+
+IstibuniIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                         origin=as(Locations[3, ], "Spatial"), cont.value = 2612, 
+                         time = "m", move=8, funct = "t", 
+                         cogn.slp = TRUE, export = FALSE) 
+
+# Visual check and export isoline vector
+IstibuniIso$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
+
+```
+
+```{r vii}
+# Plot the results
+
+plot(Territory); # The territory
+plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TRUE); # The locations (Lufisa, Farui, Istibuni)
+plot(LufisaIso$isolines, col="yellow", lwd=2,add = TRUE); 
+plot(FaruiIso$isolines, col="red", lwd =2,add = TRUE);
+plot(IstibuniIso$isolines, col="green", lwd=2, add = TRUE)
+
+```
+
+
