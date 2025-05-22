@@ -17,7 +17,7 @@ This project consists of the codes we used to reach our goal.
 
 ## Authors
 * Angel Bogdanov Grigorov, (https://orcid.org/0009-0007-4625-3555), The National Archaeological Institute with Museum at the Bulgarian Academy of Sciences (NAIM-BAS), angelbogdanovgrigorov@gmail.com
-* Adela Sobotkova [![](https://orcid.org/sites/default/files/images/orcid_16x16.png)]([(https://orcid.org/0000-0002-4541-3963)]), adela@cas.au.dk
+* Adela Sobotkova, (https://orcid.org/0000-0002-4541-3963), Department of History and Classical Studies, Aarhus University, adela@cas.au.dk
 
 ## License
 CC-BY-SA 4.0, see attached License.md
