@@ -53,7 +53,7 @@ IstibuniBuff <- st_buffer(Locations[3,], dist = 223900)
 
 ```
 
-```{r iV}
+```{r iv}
 # Plot the results
 options(scipen =999)
 plot(Territory); # The territory
@@ -64,10 +64,35 @@ plot(IstibuniBuff, col = NA, border = "green", lwd = 2, add = TRUE)
 
 ```
 
+# Test with 23 miles per a day
 
+All the results seems to be out of the Kazanlak Valley. Is this a mistake of the method we use or of al-Idrisi. What if the one days march is not 24 miles as we assumed but 23. So we repeated the analysis with 23.
+Because the distances from Farui are mentioned in miles, it won't be necessary to repeat this calculations. It will be done only for Istibuni and Lufisa.
+In this case, the distances from 
+Istibuni 6 day's march x 23 miles = 138 miles x 1,555 km per a mile should be 214,5 km
+Lufisa 4 day's march x 23 miles = 92 miles x 1,555 km per a mile should be 143 km
 
+```{r v}
+# 143 km from Lufisa
 
+LufisaBuff143km <- st_buffer(Locations[1,], dist = 143000)
 
+# and 214.5 km from Istibuni
+
+IstibuniBuff214.5km <- st_buffer(Locations[3,], dist = 214500)
+
+```
+
+```{r vi}
+# Plot the results
+options(scipen =999)
+plot(Territory); # The territory
+plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TRUE); # The locations (Lufisa, Farui, Istibuni)
+plot(LufisaBuff143km, col = NA, border = "yellow", lwd = 2, add = TRUE); 
+plot(FaruiBuff, col = NA, border = "red", lwd = 2, add = TRUE);
+plot(IstibuniBuff214.5km, col = NA, border = "green", lwd = 2, add = TRUE)
+
+```
 
 
 

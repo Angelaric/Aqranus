@@ -472,3 +472,7 @@ LinesIstibuni <- here("results", "IstibuniNetwork2686min.shp")
 st_write(lines_nn3, LinesIstibuni, delete_layer = TRUE)
 
 ```
+
+# Test with 23 miles per a day
+
+All the results seems to be out of the Kazanlak Valley. Is this a mistake of the method we use or of al-Idrisi. What if the one days march is not 24 miles as we assumed but 23. So we repeated the analysi with 23.
