@@ -1,6 +1,6 @@
 ---
 title: "LCP Strinava - Beroe"
-author: "Angel Bogdanov Grigorov"
+author: "Angel Bogdanov Grigorov and Adela Sobotkova"
 date: "Created 10 Oct. 2024, updated `r format(Sys.time(), '%d %B, %Y')`"
 output: 
   html_document:
@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```
 
 
-In this file I demonstrate the LCP from Trinabos/Strinabos to Beroe.
+In this file we demonstrate the LCP from Trinabos/Strinabos to Beroe.
 
 Two Medieval sources recount the near escape of Emperor Isaac II Angelos from Bulgaria. George Akropolites specifies that Emperor Isaac was laying siege to Tsar Asen at Strinabos, north of the Stara Planina mountain, before he was forced to flee south.
 Niketas Choniates mentions the emperor passed through Kran during his flight across the mountain. Niketas explicitly states that the emperor took the shortest route out of Bulgaria and headed directly for Byzantine Beroe. 
@@ -53,7 +53,7 @@ plot(Ter2Agg10); plot(Origo_Destino$geometry, col = "red", pch = 19, add=TRUE); 
 
 ```
 
-Most scholars believe that Strinabos is Trinabos, which refers to Tarnovo — the capital of medieval Bulgaria during the 12th century. The mentioned Beroe is modern day Stara Zagora. As stated in Niketas Choniates, Kran lies on the shortest road from Strinabos to Beroe. Using this information, I create a Least Cost Path linking Veliko Tarnovo to Stara Zagora
+Most scholars believe that Strinabos is Trinabos, which refers to Tarnovo — the capital of medieval Bulgaria during the 12th century. The mentioned Beroe is modern day Stara Zagora. As stated in Niketas Choniates, Kran lies on the shortest road from Strinabos to Beroe. Using this information, we create a Least Cost Path linking Veliko Tarnovo to Stara Zagora
 
 ```{r iv}
 
@@ -67,7 +67,7 @@ Trinabos_Beroe <- movecomp(dtm=raster(Territory2),
 
 ```
 
-But Avramov (1929) challenges the Veliko Tarnovo thesis. According to him Strinabos is not Trinabos (Veliko Tarnovo). So I made the same LCP but this time linking Beroe with the Vasil Avramov's Strinabos. 
+But Avramov (1929) challenges the Veliko Tarnovo thesis. According to him Strinabos is not Trinabos (Veliko Tarnovo). So we made the same LCP but this time linking Beroe with the Vasil Avramov's Strinabos. 
 
 ```{r v}
 

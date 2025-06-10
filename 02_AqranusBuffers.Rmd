@@ -1,6 +1,6 @@
 ---
 title: "Buffer Analysis"
-author: "Angel Bogdanov Grigorov"
+author: "Angel Bogdanov Grigorov and Adela Sobotkova"
 date: "Created 19 May 2025, updated `r format(Sys.time(), '%d %B, %Y')`"
 output: 
   html_document:
@@ -15,8 +15,8 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE)
 ```
 
-In this file I demonstrate the buffer analysis representing the straight distances from the respective cities.
-Acording to Idrisi Aqranus is six days' march from Istibuni (modern-day Ihtiman), 40 miles from Farui (modern-day Stara Zagora), and four days' march from Lufisa (modern-day Lovech). It is generally accepted that 1 mile according to al-Idrisi is approximately one and a half kilometers, and a day’s march is around 23–25 miles. Using those equations we can translate into modern distance units: 217.7 km from Istibuni, 62.2 km from Farui, and 144.9 km from Lufisa.
+In this file we demonstrate the buffer analysis representing the straight distances from the respective cities.
+Acording to Idrisi Aqranus is six days' march from Istibuni (modern-day Ihtiman), 40 miles from Farui (modern-day Stara Zagora), and four days' march from Lufisa (modern-day Lovech). It is generally accepted that 1 mile according to al-Idrisi is approximately 1.555 kilometers, and a day’s march is around 23–25 miles. Using those equations we can translate into modern distance units: 223.9 km from Istibuni, 62.2 km from Farui, and 149.2 km from Lufisa, taking the average of 23-25, which is 24.
 In this case, using the buffers with the respective distances Kran should ideally be located in their intersection.
 
 # First, loda data
@@ -39,17 +39,17 @@ plot(Locations$geometry, cex=1, pch = 19, col="yellow", add=TRUE) # The location
 # The Analysis
 
 ```{r iii}
-# 144.9 km from Lufisa
+# 149.2 km from Lufisa
 
-LufisaBuff <- st_buffer(Locations[1,], dist = 144900)
+LufisaBuff <- st_buffer(Locations[1,], dist = 149200)
 
 # 62.2 km from Farui
 
 FaruiBuff <- st_buffer(Locations[2,], dist = 62200)
 
-# and 217.7 km from Istibuni
+# and 223.9 km from Istibuni
 
-IstibuniBuff <- st_buffer(Locations[3,], dist = 217700)
+IstibuniBuff <- st_buffer(Locations[3,], dist = 223900)
 
 ```
 

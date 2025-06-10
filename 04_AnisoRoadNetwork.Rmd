@@ -1,6 +1,6 @@
 ---
 title: "Anisotropic Road Network Analysis"
-author: "Angel Bogdanov Grigorov"
+author: "Angel Bogdanov Grigorov and Adela Sobotkova"
 date: "Created 10 Feb. 2025, updated `r format(Sys.time(), '%d %B, %Y')`"
 output: 
   html_document:
@@ -15,13 +15,13 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE)
 ```
 
-In this file I demonstrate the Anisotropic Road Network Analysis on the base of sfnetwork() function. 
+In this file we demonstrate the Anisotropic Road Network Analysis on the base of sfnetwork() function. 
 The calculated distances are the same as those in AqranusIsochrones.Rmd
 
-So, I use sfnetwors() and follow the instructions of Lucas van der Meer from here:
+So, we use sfnetwors() and follow the instructions of Lucas van der Meer from here:
 https://luukvdmeer.github.io/UseR2024/notebook.html#compute-accessibility-to-restaurants
 
-and adapt it for my own needs
+and adapt it for our own needs
 
 # First, loda data
 
@@ -127,7 +127,7 @@ WendelRoads$time = units::set_units(WendelRoads$length / WendelRoads$speed, "min
 
 ```{r x}
 
-plot(dplyr::select(WendelRoads, time)) # The non categorised roads
+plot(dplyr::select(WendelRoads, time))
 
 ```
 
@@ -190,7 +190,6 @@ plot(network, cex = 1, pch = 19, col="red")
 
 ```{r xvii}
 
-# The non categorised roads
 tidygraph::with_graph(network, tidygraph::graph_component_count())
 
 ```
@@ -230,14 +229,14 @@ plot(network, pch = 19, col="red")
 
 In this step, we compute a simple cumulative opportunities accessibility metric to find out how many road points can be reached from the starting points within a given time threshold. For that, we use sfnetworks to compute travel times between the starting point and all points across the road in every 500 m, and select those  that are accessible within the time threshold.
 
-It is generally accepted that a person walks 1 km in 12 minutes or 5 km in 1 hour. Accordingly, if Lufisa is 144.9 km away from Kran, I need to input into the code:
+It is generally accepted that a person walks 1 km in 12 minutes or 5 km in 1 hour. Accordingly, if Lufisa is 149.2 km away from Kran, we need to input into the code:
 
-144.9 km / 5 km per hour = 28.89 hours,
-which in minutes should be 1,738.8 min (144.9 km × 12 min = 1,738.8 min).
+149.2 km / 5 km per hour = 29.8 hours,
+which in minutes should be 1,790.8 min (149.2 km × 12 min = 1,790.8 min).
 
 The same applies to the other locations:
 
-Istibuni = 217.7 km × 12 min = 2,612 min
+Istibuni = 223.9 km × 12 min = 2,686.8 min
 Farui = 62.2 km × 12 min = 746 min
 
 ## Let start with Farui
@@ -291,14 +290,14 @@ plot(Locations[3,], pch = 19, col="blue", add=TRUE, cex = 2)
 
 ```{r xxv}
 
-# Istibuni = 217.7 km × 12 min = 2.612 min
+# Istibuni = 223.9 km × 12 min = 2.686 min (we round)
 
 times = network |>
   tidygraph::activate("edges") %>% 
   dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
   sfnetworks::st_network_cost(Locations[3, ], WendelRoadsPoints, weights = "time")
 
-access3 = WendelRoadsPoints[which(times < units::set_units(2612, "min")),]
+access3 = WendelRoadsPoints[which(times < units::set_units(2686, "min")),]
 
 nrow(access3)
 
@@ -323,14 +322,14 @@ plot(Locations[1,], pch = 19, col="blue", add=TRUE, cex = 2)
 
 ```{r xxviii}
 
-# From Lufisa to Cran is 144.9  km / 5 km per hour = 28.89 hours, which in minutes should be 1,738.8 min (144.9 km × 12 min = 1,738.8 min).
+# From Lufisa to Kran is 149.2  km / 5 km per hour = 29.8 hours, which in minutes should be 1,790.4 min (149.2 km × 12 min = 1,790.4 min).
 
 times = network |>
   tidygraph::activate("edges") %>% 
   dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
   sfnetworks::st_network_cost(Locations[1, ], WendelRoadsPoints, weights = "time")
 
-access1 = WendelRoadsPoints[which(times < units::set_units(1738, "min")),]
+access1 = WendelRoadsPoints[which(times < units::set_units(1790, "min")),] # We round the minutes to 1738
 
 nrow(access1)
 
@@ -368,7 +367,7 @@ mapview(access3, col.regions = "green", layer.name = "Istibuni")
 ```
 
 # combine points into networks
-```{r}
+```{r xxxii}
 library(nngeo)
 
 # Connect each point to its nearest neighbor (excluding itself)
@@ -395,7 +394,7 @@ lines_nn3 <- lines_nn3[unclass(st_length(lines_nn3)) > 0 ] %>%
 
 ```
 
-```{r}
+```{r xxxiii}
 mapview(WendelRoads, lwd = 0.5) + 
 mapview(lines_nn1, color = "yellow", layer.name = "Lufisa") +
 mapview(lines_nn2, color = "red", alpha = 0.7, layer.name = "Farui") +
@@ -404,7 +403,7 @@ mapview(lines_nn3, color = "green", alpha = 0.7, layer.name = "Istibuni")
 ```
 
 
-```{r}
+```{r xxxiv}
 library(tmap)
 lines_nn1$source <- "Lufisa"
 lines_nn1$lwidth <- 3
@@ -452,3 +451,24 @@ tm_layout(
 
 ```
 
+And export the line network results if it is necessary
+
+```{r xix}
+
+# Define the output file path for Lufisa network
+
+LinesLufisa <- here("results", "LufisaNetwork1790min.shp")
+# Export the results
+st_write(lines_nn1, LinesLufisa, delete_layer = TRUE)
+
+# Define the output file path for Farui network
+LinesFarui <- here("results", "FaruiNetwork746min.shp")
+# Export the results
+st_write(lines_nn2, LinesFarui, delete_layer = TRUE)
+
+# Define the output file path for the Istibuni network
+LinesIstibuni <- here("results", "IstibuniNetwork2686min.shp")
+# Export the results
+st_write(lines_nn3, LinesIstibuni, delete_layer = TRUE)
+
+```
