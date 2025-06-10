@@ -104,7 +104,3 @@ plot(IstibuniBuff214.5km, col = NA, border = "green", lwd = 2, add = TRUE)
 
 
 
-
-
-
-

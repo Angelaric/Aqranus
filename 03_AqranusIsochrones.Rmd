@@ -122,4 +122,62 @@ plot(IstibuniIso$isolines, col="green", lwd=2, add = TRUE)
 
 # Test with 23 miles per a day
 
-All the results seems to be out of the Kazanlak Valley. Is this a mistake of the method we use or of al-Idrisi. What if the one days march is not 24 miles as we assumed but 23. So we repeated the analysi with 23.
+All the results seems to be out of the Kazanlak Valley. Is this a mistake of the method we use or of al-Idrisi. What if the one days march is not 24 miles as we assumed but 23. So we repeated the analysis with 23.
+Because the distances from Farui are mentioned in miles, it won't be necessary to repeat this calculations. It will be done only for Istibuni and Lufisa.
+In this case, the distances from 
+Istibuni should be 214,5 km / 5 km = 42,9 walking h (or 2,574 mins)
+Lufisa should be 143 km  / 5 km = 28,6 walking h (1,716 mins)
+
+```{r viii}
+
+# Lufisa
+
+LufisaIso1716 <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                       origin=as(Locations[1, ], "Spatial"), 
+                       cont.value = 1716, time = "m", move=8,
+                       funct = "t", cogn.slp = TRUE, export = FALSE) # export fails so do it manually 
+
+
+# Visual check and export isoline vector
+LufisaIso1716$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
+```
+
+
+```{r ix}
+
+# Istibuni
+
+IstibuniIso2574 <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
+                         origin=as(Locations[3, ], "Spatial"), cont.value = 2574,
+                         time = "m", move=8, funct = "t", 
+                         cogn.slp = TRUE, export = FALSE) 
+
+# Visual check and export isoline vector
+IstibuniIso$isolines %>% 
+  st_as_sf() %>% 
+  st_set_crs(32635) %>% 
+  mapview() # view and save as shp if you need to
+
+```
+
+
+```{r x}
+# Plot the results
+
+plot(Territory); # The territory
+plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TRUE); # The locations (Lufisa, Farui, Istibuni)
+plot(LufisaIso1716$isolines, col="yellow", lwd=2,add = TRUE); 
+plot(FaruiIso$isolines, col="red", lwd =2,add = TRUE);
+plot(IstibuniIso2574$isolines, col="green", lwd=2, add = TRUE)
+
+```
+
+
+
+
+
+
+
