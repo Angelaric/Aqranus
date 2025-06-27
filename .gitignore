@@ -43,5 +43,6 @@ cache/
 .Renviron
 
 data/large/
+elevation/
 
 
