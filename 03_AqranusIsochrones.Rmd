@@ -65,7 +65,8 @@ plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col=c("yellow","red", 
 
 LufisaIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
                        origin=as(Locations[1, ], "Spatial"), 
-                       cont.value = 1790, time = "m", move=8, # We round 1790.4 to 1790
+                    #   cont.value = 1790, time = "m", move=8, # We round 1790.4 to 1790
+                         cont.value = 1560, time = "m", move=8, # using 4 days * 6 hrs *60 mins
                        funct = "t", cogn.slp = TRUE, export = FALSE) # export fails so do it manually 
 
 
@@ -97,7 +98,9 @@ FaruiIso$isolines %>%
 # Istibuni
 
 IstibuniIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
-                         origin=as(Locations[3, ], "Spatial"), cont.value = 2686, # We round 2686.8 to 2686
+                         origin=as(Locations[3, ], "Spatial"),
+                         #cont.value = 2686, # We round 2686.8 to 2686
+                         cont.value = 2160, #  using 6 days * 6 hrs *60 mins
                          time = "m", move=8, funct = "t", 
                          cogn.slp = TRUE, export = FALSE) 
 
@@ -162,7 +165,6 @@ IstibuniIso$isolines %>%
   mapview() # view and save as shp if you need to
 
 ```
-
 
 ```{r x}
 # Plot the results
