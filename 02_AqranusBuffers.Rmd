@@ -53,6 +53,8 @@ IstibuniBuff <- st_buffer(Locations[3,], dist = 223900)
 
 ```
 
+
+
 ```{r iv}
 # Plot the results
 options(scipen =999)
@@ -81,6 +83,10 @@ LufisaBuff143km <- st_buffer(Locations[1,], dist = 143000)
 
 IstibuniBuff214.5km <- st_buffer(Locations[3,], dist = 214500)
 
+# 62.2 km from Farui
+
+FaruiBuff <- st_buffer(Locations[2,], dist = 62200)
+
 ```
 
 ```{r vi}
@@ -94,13 +100,75 @@ plot(IstibuniBuff214.5km, col = NA, border = "green", lwd = 2, add = TRUE)
 
 ```
 
+## Adela's test for max and min speed
+
+
+```{r}
+library(sf)
+
+# Parameters (set as needed!)
+arab_mile_in_feet <- 6474
+feet_to_mile <- arab_mile_in_feet * 0.3
+mile_to_km <- 1.555
+max_miles_per_day <- 15  # 15 miles/per day == 23 km/day
+min_miles_per_day <- 10
+
+# Max distance (same as your original)
+distL_max  <- 4 * max_miles_per_day * mile_to_km
+distF_max  <- 40 * mile_to_km
+distI_max  <- 6 * max_miles_per_day * mile_to_km
+
+# Min distance (lower daily walking range)
+distL_min  <- 4 * min_miles_per_day * mile_to_km
+distF_min  <- 40 * (min_miles_per_day / max_miles_per_day) * mile_to_km  # proportional reduction
+distI_min  <- 6 * min_miles_per_day * mile_to_km
+
+# Create buffers in meters (multiply km by 1000)
+# Lufisa
+LufisaBuff_max <- st_buffer(Locations[1,], dist = distL_max * 1000)
+LufisaBuff_min <- st_buffer(Locations[1,], dist = distL_min * 1000)
+LufisaDonut <- st_difference(LufisaBuff_max, LufisaBuff_min)
+
+# Farui
+FaruiBuff_max <- st_buffer(Locations[2,], dist = distF_max * 1000)
+FaruiBuff_min <- st_buffer(Locations[2,], dist = distF_min * 1000)
+FaruiDonut <- st_difference(FaruiBuff_max, FaruiBuff_min)
+
+# Istibuni
+IstibuniBuff_max <- st_buffer(Locations[3,], dist = distI_max * 1000)
+IstibuniBuff_min <- st_buffer(Locations[3,], dist = distI_min * 1000)
+IstibuniDonut <- st_difference(IstibuniBuff_max, IstibuniBuff_min)
+
+```
+```{r}
+# Combine all donut zones
+Donuts <- rbind(
+  LufisaDonut %>% mutate(Source = "Lufisa", color = "yellow"),
+  FaruiDonut %>% mutate(Source = "Farui", color = "red"),
+  IstibuniDonut %>% mutate(Source = "Istibuni", color = "green")
+)
+```
 
 
 
+```{r}
 
+# Plot raster background (elevation > 0)
+plot(Territory, col = terrain.colors(25), main = "Donut Buffers by Site: Uncertainty in Daily March Distance (20-25)")
 
+# Add donuts
+plot(Donuts["geometry"], border = Donuts$color, col = adjustcolor(Donuts$color, alpha.f = 0.4), add = TRUE, lwd = 2)
 
+# Add locations
+plot(Locations$geometry, pch = 21, bg = "black", col = c("yellow", "red", "green"), cex = 1.5, add = TRUE)
 
+```
+
+```{r}
+# Create interactive map
+mapview(Donuts, zcol = "color", layer.name = "Walking Range Donuts", alpha.regions = 0.4, lwd = 2) +
+  mapview(Locations, col.regions = c("yellow", "red", "green"), layer.name = "Locations", cex = 3)
+```
 
 
 
