@@ -16,7 +16,21 @@ knitr::opts_chunk$set(echo = TRUE,
 ```
 
 In this file we demonstrate the buffer analysis representing the straight distances from the respective cities.
-Acording to Idrisi Aqranus is six days' march from Istibuni (modern-day Ihtiman), 40 miles from Farui (modern-day Stara Zagora), and four days' march from Lufisa (modern-day Lovech). It is generally accepted that 1 mile according to al-Idrisi is approximately 1.555 kilometers, and a day’s march is around 23–25 miles. Using those equations we can translate into modern distance units: 223.9 km from Istibuni, 62.2 km from Farui, and 149.2 km from Lufisa, taking the average of 23-25, which is 24.
+
+According to al-Idrisi, Aqranus was six stages (marāḥil) from Istibuni (modern-day Ihtiman, Western Bulgaria), 40 miles (mīlān) from Farui (modern-day Stara Zagora, Central Bulgaria), and four stages (marāḥil) from Lufisa (modern-day Lovech, Northern Bulgaria)
+
+Al-Idrisi measures distances using three main units: miles (sg. mīl, pl. mīlan or amyal, ), days of march (sg. yawm, pl. ayyām), and stages (sg. marḥalah, pl. marāḥil). Typically, he expresses short distances in miles and longer ones in days, although he is not entirely consistent. The exact value of these units is debated. It is generally accepted that one mile equals approximately 1,555 meters, a day’s march ranges between 23 and 25 miles, and a day of intensive travel can extend to 30–36 miles. The one-day trip measure varies depending on terrain and travel conditions. A marḥalah refers to the distance between two postal stations (manzil). As a term, it originates from the travels of caravans, typically covering about 7–8 hours of travel. In many translations of al-Idrisi’s work, marḥalah is rendered as “a day’s march”
+
+In our analysis, we adopt Nedkov and others' interpretation for one mile of al-Idrisi as corresponding to approximately 1,555 meters and one marḥalah covering about 7–8 hours of travel (Недков 1960, 17). We use Murrieta-Flores’ average 4.9 km per hour for 20–60 year old men carrying nothing on his back (Murrieta-Flores 2010, 253). Applying these conversions, we derive the following modern equivalents:
+
+6 stages from Istibuni (Ihtiman) ≈ 7 hours × 4.9 km/h ≈ 34.3 km.
+6 stages × 34.3 km ≈ 205.8 km 
+
+4 stages from Lufisa (Lovech) ≈ 7 hours × 4.9 km/h ≈ 34.3 km
+4 stages × 34.3 km ≈ 137.2 km
+
+40 miles from Farui (Stara Zagora) ≈ 40 miles × 1,555 km per mile ≈ 62.2 km
+
 In this case, using the buffers with the respective distances Kran should ideally be located in their intersection.
 
 # First, loda data
@@ -39,17 +53,17 @@ plot(Locations$geometry, cex=1, pch = 19, col="yellow", add=TRUE) # The location
 # The Analysis
 
 ```{r iii}
-# 149.2 km from Lufisa
+# 137.2 km from Lufisa
 
-LufisaBuff <- st_buffer(Locations[1,], dist = 149200)
+LufisaBuff <- st_buffer(Locations[1,], dist = 137200)
 
 # 62.2 km from Farui
 
 FaruiBuff <- st_buffer(Locations[2,], dist = 62200)
 
-# and 223.9 km from Istibuni
+# and 205.8 km from Istibuni
 
-IstibuniBuff <- st_buffer(Locations[3,], dist = 223900)
+IstibuniBuff <- st_buffer(Locations[3,], dist = 205800)
 
 ```
 
@@ -63,40 +77,6 @@ plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TR
 plot(LufisaBuff, col = NA, border = "yellow", lwd = 2, add = TRUE); 
 plot(FaruiBuff, col = NA, border = "red", lwd = 2, add = TRUE);
 plot(IstibuniBuff, col = NA, border = "green", lwd = 2, add = TRUE)
-
-```
-
-# Test with 23 miles per a day
-
-All the results seems to be out of the Kazanlak Valley. Is this a mistake of the method we use or of al-Idrisi. What if the one days march is not 24 miles as we assumed but 23. So we repeated the analysis with 23.
-Because the distances from Farui are mentioned in miles, it won't be necessary to repeat this calculations. It will be done only for Istibuni and Lufisa.
-In this case, the distances from 
-Istibuni 6 day's march x 23 miles = 138 miles x 1,555 km per a mile should be 214,5 km
-Lufisa 4 day's march x 23 miles = 92 miles x 1,555 km per a mile should be 143 km
-
-```{r v}
-# 143 km from Lufisa
-
-LufisaBuff143km <- st_buffer(Locations[1,], dist = 143000)
-
-# and 214.5 km from Istibuni
-
-IstibuniBuff214.5km <- st_buffer(Locations[3,], dist = 214500)
-
-# 62.2 km from Farui
-
-FaruiBuff <- st_buffer(Locations[2,], dist = 62200)
-
-```
-
-```{r vi}
-# Plot the results
-options(scipen =999)
-plot(Territory); # The territory
-plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TRUE); # The locations (Lufisa, Farui, Istibuni)
-plot(LufisaBuff143km, col = NA, border = "yellow", lwd = 2, add = TRUE); 
-plot(FaruiBuff, col = NA, border = "red", lwd = 2, add = TRUE);
-plot(IstibuniBuff214.5km, col = NA, border = "green", lwd = 2, add = TRUE)
 
 ```
 
@@ -170,5 +150,9 @@ mapview(Donuts, zcol = "color", layer.name = "Walking Range Donuts", alpha.regio
   mapview(Locations, col.regions = c("yellow", "red", "green"), layer.name = "Locations", cex = 3)
 ```
 
+# References
 
+Murrieta-Flores, Patricia. 2010. ‘Travelling in a Prehistoric Landscape: Exploring the Influences That Shaped Human Movement’. In Making History Interactive. Computer Applications and Quantitative Methods in Archaeology (CAA), edited by Bernard Fisher, Jane Crawford, and David Koller, 249–67. BAR International. Oxford: Archaeopress. https://doi.org/10.15496/PUBLIKATION-3314.
+
+Недков, Борис. 1960. ‘Въведение’. In България и съседните ѝ земи през XII в. според Идриси, edited by Борис Недков, 9–29. София: Наука и изкуство.
 
