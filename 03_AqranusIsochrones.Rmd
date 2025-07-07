@@ -15,10 +15,19 @@ knitr::opts_chunk$set(echo = TRUE,
                       warning = FALSE)
 ```
 
-In these file we demonstrate the Walking Isochrones analysis. The text of al-Idrisi states that Aqranus is six days' march from Istibuni (modern-day Ihtiman), 40 miles from Farui (modern-day Stara Zagora), and four days' march from Lufisa (modern-day Lovech). One mile according to al-Idrisi is approximately 1.555 kilometers, and a day’s march is around 23–25 miles. Using those equations we can translate into modern distance units: 223.9 km from Istibuni, 62.2 km from Farui, and 149.2 km from Lufisa, taking the average of 23-25, which is 24. It is generally accepted it takes circa 12 minutes to walk 1 km or 1 hour to walk 5 km. We transformed the distances into walking hours:
-6 days' march from Istibuni ≈ 223.9 km / 5 km per h ≈ 44.7 walking h
-40 miles from Farui ≈ 62.2 km / 5 km per h ≈ 12.4 walking h
-4 days' march from Lufisa ≈ 149.2 km / 5 km per h ≈ 29.8 walking h
+In these file we demonstrate the Walking Isochrones analysis. 
+
+Al-Idrisi measures distances using three main units: miles (sg. mīl, pl. mīlan or amyal, ), days of march (sg. yawm, pl. ayyām), and stages (sg. marḥalah, pl. marāḥil). Typically, he expresses short distances in miles and longer ones in days, although he is not entirely consistent. The exact value of these units is debated. It is generally accepted that one mile equals approximately 1,555 meters, a day’s march ranges between 23 and 25 miles, and a day of intensive travel can extend to 30–36 miles. The one-day trip measure varies depending on terrain and travel conditions. A marḥalah refers to the distance between two postal stations (manzil). As a term, it originates from the travels of caravans, typically covering about 7–8 hours of travel. In many translations of al-Idrisi’s work, marḥalah is rendered as “a day’s march”
+
+In our analysis, we adopt Nedkov and others' interpretation for one mile of al-Idrisi as corresponding to approximately 1,555 meters and one marḥalah covering about 7–8 hours of travel (Недков 1960, 17). We use Murrieta-Flores’ average 4.9 km per hour for 20–60 year old men carrying nothing on his back (Murrieta-Flores 2010, 253). 
+
+The following inputs represent the maximum time spent in marching to Aqranus from each of the three cities:
+
+6 stages from Istibuni = 6 x 7 h ≈ 42 walking hours
+40 miles from Farui = 62.2 km ÷ 4.9 km/h = 12.6 walking hours
+4 stages from Lufisa = 4 x 7 h ≈ 28 walking hours
+
+These values are used to generate walking-time isochrones around each reference city, with the boundary representing maximum reachable distance
 
 # First, load data and library
 
@@ -51,6 +60,7 @@ TerAgg10 <- aggregate(Territory, fact = 10, fun = mean, na.rm = T) # Aggregate t
 
 # Let's visualise
 
+plot(Territory); plot(Locations$geometry, cex=1, pch = 19, col=c("yellow","red", "green"), add=TRUE)
 plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col=c("yellow","red", "green"), add=TRUE)
 
 ```
@@ -60,15 +70,13 @@ plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col=c("yellow","red", 
 ```{r iv}
 
 # Because we run the function in minutes, the calculations are as follows:
-# If Lufisa is 149.2 from Aqranus it is  149.2 km / 5 km per h = 29.8 hours, which represented as minutes should be 1790.4 min (149.8 km х 12 min = 1790.4).
-# Respectively for the other cities down
+# If Aqranus is 4 stages (marahil) from Lufisa (Lovech) ≈ 4 marahil x 7 h ≈ 28 h x 60 min = 1680 min.
 
 LufisaIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
-                       origin=as(Locations[1, ], "Spatial"), 
-                    #   cont.value = 1790, time = "m", move=8, # We round 1790.4 to 1790
-                         cont.value = 1560, time = "m", move=8, # using 4 days * 6 hrs *60 mins
-                       funct = "t", cogn.slp = TRUE, export = FALSE) # export fails so do it manually 
-
+                       origin=as(Locations[1, ], "Spatial"),
+                         cont.value = 1680, time = "m", move=8, # using 4 stages * 7 hrs *60 mins
+                       funct = "t", cogn.slp = TRUE, N = 1.02, # Set N = 1.02 adjust speed to ~4.9 km/h
+                       export = FALSE) # Export fails so do it manually
 
 # Visual check and export isoline vector
 LufisaIso$isolines %>% 
@@ -79,12 +87,13 @@ LufisaIso$isolines %>%
 
 ```{r v}
 
-# Farui
+# If Aqranus is 40 miles from Farui (Stara Zagora) ≈ 62.2 km ÷ 4.9 km/h ≈ 12,6 h x 60 min ≈ 756 min
 
 FaruiIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
                       origin=as(Locations[2, ], "Spatial"), 
-                      cont.value = 746, time = "m", move=8, funct = "t", # We round 746.4 to 746
-                      cogn.slp = TRUE, export = FALSE) 
+                      cont.value = 756, time = "m", move=8, funct = "t",
+                      cogn.slp = TRUE, N = 1.02, # Set N = 1.02 adjust speed to ~4.9 km/h
+                      export = FALSE) # # Export fails so do it manually
 
 # Visual check and export isoline vector
 FaruiIso$isolines %>% 
@@ -95,14 +104,14 @@ FaruiIso$isolines %>%
 
 ```{r vi}
 
-# Istibuni
+# If Aqranus is 6 marahil (stages) from Istibuni (Ihtiman) ≈ 6 marahil x 7 h ≈ 42 h x 60 min ≈ 2520 min
 
 IstibuniIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
                          origin=as(Locations[3, ], "Spatial"),
-                         #cont.value = 2686, # We round 2686.8 to 2686
-                         cont.value = 2160, #  using 6 days * 6 hrs *60 mins
+                         cont.value = 2520, #  using 7 days * 6 hrs *60 mins
                          time = "m", move=8, funct = "t", 
-                         cogn.slp = TRUE, export = FALSE) 
+                         cogn.slp = TRUE, N = 1.02, # Set N = 1.02 adjust speed to ~4.9 km/h
+                         export = FALSE) # # Export fails so do it manually 
 
 # Visual check and export isoline vector
 IstibuniIso$isolines %>% 
@@ -123,56 +132,8 @@ plot(IstibuniIso$isolines, col="green", lwd=2, add = TRUE)
 
 ```
 
-# Test with 23 miles per a day
+# References
 
-All the results seems to be out of the Kazanlak Valley. Is this a mistake of the method we use or of al-Idrisi. What if the one days march is not 24 miles as we assumed but 23. So we repeated the analysis with 23.
-Because the distances from Farui are mentioned in miles, it won't be necessary to repeat this calculations. It will be done only for Istibuni and Lufisa.
-In this case, the distances from 
-Istibuni should be 214,5 km / 5 km = 42,9 walking h (or 2,574 mins)
-Lufisa should be 143 km  / 5 km = 28,6 walking h (1,716 mins)
+Murrieta-Flores, Patricia. 2010. ‘Travelling in a Prehistoric Landscape: Exploring the Influences That Shaped Human Movement’. In Making History Interactive. Computer Applications and Quantitative Methods in Archaeology (CAA), edited by Bernard Fisher, Jane Crawford, and David Koller, 249–67. BAR International. Oxford: Archaeopress. https://doi.org/10.15496/PUBLIKATION-3314.
 
-```{r viii}
-
-# Lufisa
-
-LufisaIso1716 <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
-                       origin=as(Locations[1, ], "Spatial"), 
-                       cont.value = 1716, time = "m", move=8,
-                       funct = "t", cogn.slp = TRUE, export = FALSE) # export fails so do it manually 
-
-
-# Visual check and export isoline vector
-LufisaIso1716$isolines %>% 
-  st_as_sf() %>% 
-  st_set_crs(32635) %>% 
-  mapview() # view and save as shp if you need to
-```
-
-
-```{r ix}
-
-# Istibuni
-
-IstibuniIso2574 <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
-                         origin=as(Locations[3, ], "Spatial"), cont.value = 2574,
-                         time = "m", move=8, funct = "t", 
-                         cogn.slp = TRUE, export = FALSE) 
-
-# Visual check and export isoline vector
-IstibuniIso$isolines %>% 
-  st_as_sf() %>% 
-  st_set_crs(32635) %>% 
-  mapview() # view and save as shp if you need to
-
-```
-
-```{r x}
-# Plot the results
-
-plot(Territory); # The territory
-plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"), add=TRUE); # The locations (Lufisa, Farui, Istibuni)
-plot(LufisaIso1716$isolines, col="yellow", lwd=2,add = TRUE); 
-plot(FaruiIso$isolines, col="red", lwd =2,add = TRUE);
-plot(IstibuniIso2574$isolines, col="green", lwd=2, add = TRUE)
-
-```
+Недков, Борис. 1960. ‘Въведение’. In България и съседните ѝ земи през XII в. според Идриси, edited by Борис Недков, 9–29. София: Наука и изкуство.
