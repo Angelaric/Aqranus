@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE,
 In this file we demonstrate the Anisotropic Road Network Analysis on the base of sfnetwork() function. 
 The calculated distances are the same as those in AqranusIsochrones.Rmd
 
-So, we use sfnetwors() and follow the instructions of Lucas van der Meer from here:
+So, we use sfnetwors() and follow the instructions of Van der Meert et al. (2024) from here:
 https://luukvdmeer.github.io/UseR2024/notebook.html#compute-accessibility-to-restaurants
 
 and adapt it for our own needs
@@ -85,9 +85,9 @@ gradients = slopes::slope_raster(WendelRoads, Territory, directed = TRUE) * 100
 
 ```{r vii}
 
-# Now we can set a speed of each road segment, based on its gradient. We use a default speed of 5 km/h. An uphill gradient decreases this speed, and a downhill gradient increases this speed, all until a given minimum and maximum speed of respectively 2 km/h and 6 km/h.
+# Now we can set a speed of each road segment, based on its gradient. We use a default speed of 4.9 km/h. An uphill gradient decreases this speed, and a downhill gradient increases this speed, all until a given minimum and maximum speed of respectively 1.9 km/h and 5.9 km/h.
 
-estimate_pedestrian_speed <- function(gradient, default = 5, max = 6, min = 2) {
+estimate_pedestrian_speed <- function(gradient, default = 4.9, max = 5.9, min = 1.9) {
   ifelse(
     gradient < 0,
     min(default + 0.3 * abs(gradient), max),  # Light increase on downhill
@@ -98,16 +98,13 @@ estimate_pedestrian_speed <- function(gradient, default = 5, max = 6, min = 2) {
 WendelRoads$speed <- sapply(gradients, estimate_pedestrian_speed) |>
   units::set_units("km/h")
 
-# The function is pedestrian modification of the original function for cycling, made by Lucas van der Meer.
+# The function is pedestrian modification of the original function for cycling, made by Van der Meer et al (2024).
 # Modification principle:
-# Base speed: 5 km/h
-# Maximum speed: 6 km/h (on a gentle descent)
-# Minimum speed: 2 km/h (on a steep climb)
+# Base speed: 4.9 km/h
+# Maximum speed: 5.9 km/h (on a gentle descent)
+# Minimum speed: 1.9 km/h (on a steep climb)
 # Descent: Speed increases slightly (0.3 * incline)
 # Climb: Speed decreases more strongly (0.7 * incline), as walking uphill is more labor-intensive
-
-
-# Practicaly this is Tobler's Hiking Function
 
 ```
 
@@ -172,8 +169,6 @@ Luckily, the sfnetworks package contains functions to pre-process and clean netw
 
 ```{r xv}
 
-# I am not sure it is necessary for the roads I loaded but I just follow the examples of the paper 
-
 network = network |>
   tidygraph::convert(sfnetworks::to_spatial_subdivision)
 
@@ -218,8 +213,6 @@ network = network |>
 
 ```{r xx}
 
-# I don't see any difference before and after but anyway
-
 par(mar = c(0, 0, 0, 0))
 plot(network, pch = 19, col="red")
 
@@ -229,15 +222,16 @@ plot(network, pch = 19, col="red")
 
 In this step, we compute a simple cumulative opportunities accessibility metric to find out how many road points can be reached from the starting points within a given time threshold. For that, we use sfnetworks to compute travel times between the starting point and all points across the road in every 500 m, and select those  that are accessible within the time threshold.
 
-It is generally accepted that a person walks 1 km in 12 minutes or 5 km in 1 hour. Accordingly, if Lufisa is 149.2 km away from Kran, we need to input into the code:
+Al-Idrisi measures distances using three main units: miles (sg. mīl, pl. mīlan or amyal, ), days of march (sg. yawm, pl. ayyām), and stages (sg. marḥalah, pl. marāḥil). Typically, he expresses short distances in miles and longer ones in days, although he is not entirely consistent. The exact value of these units is debated. It is generally accepted that one mile equals approximately 1,555 meters, a day’s march ranges between 23 and 25 miles, and a day of intensive travel can extend to 30–36 miles. The one-day trip measure varies depending on terrain and travel conditions. A marḥalah refers to the distance between two postal stations (manzil). As a term, it originates from the travels of caravans, typically covering about 7–8 hours of travel. In many translations of al-Idrisi’s work, marḥalah is rendered as “a day’s march”
 
-149.2 km / 5 km per hour = 29.8 hours,
-which in minutes should be 1,790.8 min (149.2 km × 12 min = 1,790.8 min).
+In our analysis, we adopt Nedkov and others' interpretation for one mile of al-Idrisi as corresponding to approximately 1,555 meters and one marḥalah covering about 7–8 hours of travel (Недков 1960, 17). We use Murrieta-Flores’ average 4.9 km per hour for 20–60 year old men carrying nothing on his back (Murrieta-Flores 2010, 253). 
 
-The same applies to the other locations:
+The following inputs represent the maximum time spent in marching to Aqranus from each of the three cities:
 
-Istibuni = 223.9 km × 12 min = 2,686.8 min
-Farui = 62.2 km × 12 min = 746 min
+6 stages from Istibuni = 6 x 7 h ≈ 42 walking hours
+40 miles from Farui = 62.2 km ÷ 4.9 km/h = 12.6 walking hours
+4 stages from Lufisa = 4 x 7 h ≈ 28 walking hours
+
 
 ## Let start with Farui
 
@@ -256,14 +250,14 @@ mapview(WendelRoadsPoints)
 ```{r xxii}
 
 # Start with Farui
-# Where 62.2 km × 12 min = 746 min
+# Where 62.2 km × 12 min = 756 min
 
 times = network |>
   tidygraph::activate("edges") %>% 
   dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
   sfnetworks::st_network_cost(Locations[2, ], WendelRoadsPoints, weights = "time") 
 
-access2 = WendelRoadsPoints[which(times < units::set_units(746, "min")),]
+access2 = WendelRoadsPoints[which(times < units::set_units(756, "min")),]
 
 nrow(access2)
 
@@ -290,14 +284,14 @@ plot(Locations[3,], pch = 19, col="blue", add=TRUE, cex = 2)
 
 ```{r xxv}
 
-# Istibuni = 223.9 km × 12 min = 2.686 min (we round)
+# From Istibuni to Aqranus is 6 marahil x 7 h = 28 h x 60 min = 2520 min
 
 times = network |>
   tidygraph::activate("edges") %>% 
   dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
   sfnetworks::st_network_cost(Locations[3, ], WendelRoadsPoints, weights = "time")
 
-access3 = WendelRoadsPoints[which(times < units::set_units(2686, "min")),]
+access3 = WendelRoadsPoints[which(times < units::set_units(2520, "min")),]
 
 nrow(access3)
 
@@ -322,14 +316,14 @@ plot(Locations[1,], pch = 19, col="blue", add=TRUE, cex = 2)
 
 ```{r xxviii}
 
-# From Lufisa to Kran is 149.2  km / 5 km per hour = 29.8 hours, which in minutes should be 1,790.4 min (149.2 km × 12 min = 1,790.4 min).
+# From Lufisa to Aqranus is 4 marahil x 7 h = 28 h x 60 min = 1680 min
 
 times = network |>
   tidygraph::activate("edges") %>% 
   dplyr::filter(!is.na(time)) %>%  # filter away NaN values of time
   sfnetworks::st_network_cost(Locations[1, ], WendelRoadsPoints, weights = "time")
 
-access1 = WendelRoadsPoints[which(times < units::set_units(1790, "min")),] # We round the minutes to 1738
+access1 = WendelRoadsPoints[which(times < units::set_units(1680, "min")),] # We round the minutes to 1738
 
 nrow(access1)
 
@@ -457,19 +451,26 @@ And export the line network results if it is necessary
 
 # Define the output file path for Lufisa network
 
-LinesLufisa <- here("results", "LufisaNetwork1790min.shp")
+LinesLufisa <- here("results", "LufisaNetwork1680min.shp")
 # Export the results
 st_write(lines_nn1, LinesLufisa, delete_layer = TRUE)
 
 # Define the output file path for Farui network
-LinesFarui <- here("results", "FaruiNetwork746min.shp")
+LinesFarui <- here("results", "FaruiNetwork756min.shp")
 # Export the results
 st_write(lines_nn2, LinesFarui, delete_layer = TRUE)
 
 # Define the output file path for the Istibuni network
-LinesIstibuni <- here("results", "IstibuniNetwork2686min.shp")
+LinesIstibuni <- here("results", "IstibuniNetwork2520min.shp")
 # Export the results
 st_write(lines_nn3, LinesIstibuni, delete_layer = TRUE)
 
 ```
 
+# References
+
+Murrieta-Flores, Patricia. 2010. ‘Travelling in a Prehistoric Landscape: Exploring the Influences That Shaped Human Movement’. In Making History Interactive. Computer Applications and Quantitative Methods in Archaeology (CAA), edited by Bernard Fisher, Jane Crawford, and David Koller, 249–67. BAR International. Oxford: Archaeopress. https://doi.org/10.15496/PUBLIKATION-3314.
+
+Van der Meert, Lucas, Lorena Abad, Andrea Gilardi, and Robin Lovelace. 2024. ‘Sfnetworks: Tidy Geospatial Networks’. R. CRAN (The Comprehensive R Archive Network). https://CRAN.R-project.org/package=sfnetworks.
+
+Недков, Борис. 1960. ‘Въведение’. In България и съседните ѝ земи през XII в. според Идриси, edited by Борис Недков, 9–29. София: Наука и изкуство.
