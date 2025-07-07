@@ -89,7 +89,16 @@ plot(Strinabos_Beroe$LCPs, col = "orange", lwd = 2, add=TRUE)
 
 ```
 
+# References
 
+George Akropolites. 1903. Georgii Akropolitae Opera. Edited by August Augustus Heisenberg. Vol. 1. Bibliotheca Scriptorum Graecorum et Romanorum Teubneriana. Leipzig: B.G. Teubner.
 
+Georgius Pachymeres. 1984. Relationes Historicae. Edited by Albert Failler. Corpus Fontium Historiae Byzantinae. Paris: Éditions du CNRS.
+
+Nicetas Choniates. 1835. Historia. Edited by Immanuel Bekker. Corpus Scriptorum Historiae Byzantinae. Bonn: Weber.
+
+Wendel, Michael. 2005. Die Verkehrsanbindung in frühbyzantinischer Zeit 4.-8. Jh. n. Chr. - Karasura III. Vol. III. ZAKS Schriften 6. Langenweißbach: Beier & Beran.
+
+Аврамов, Васил. 1929. Войната на България съ Византия въ 1190 г. и погромътъ на императора Исакъ Ангелъ при гр. Трявна. София: Печатница на Армейския военно-издателски фондъ.
 
 

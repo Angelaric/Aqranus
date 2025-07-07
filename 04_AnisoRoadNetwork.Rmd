@@ -473,4 +473,6 @@ Murrieta-Flores, Patricia. 2010. ‘Travelling in a Prehistoric Landscape: Explo
 
 Van der Meert, Lucas, Lorena Abad, Andrea Gilardi, and Robin Lovelace. 2024. ‘Sfnetworks: Tidy Geospatial Networks’. R. CRAN (The Comprehensive R Archive Network). https://CRAN.R-project.org/package=sfnetworks.
 
+Wendel, Michael. 2005. Die Verkehrsanbindung in frühbyzantinischer Zeit 4.-8. Jh. n. Chr. - Karasura III. Vol. III. ZAKS Schriften 6. Langenweißbach: Beier & Beran.
+
 Недков, Борис. 1960. ‘Въведение’. In България и съседните ѝ земи през XII в. според Идриси, edited by Борис Недков, 9–29. София: Наука и изкуство.
