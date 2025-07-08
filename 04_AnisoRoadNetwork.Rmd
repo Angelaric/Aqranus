@@ -34,7 +34,7 @@ source("LoadData.R")
 ```{r ii}
 
 # Plot the loaded data
-
+# plot(Territory2) # the 30 m resolution DEM
 plot(Territory); # The territory
 plot(WendelRoads, col="red", add=TRUE); # The Wendel's (2005) roads
 plot(Locations$geometry, cex=2, pch = 19, col=c("yellow","red", "green"),  add=TRUE) # The locations
