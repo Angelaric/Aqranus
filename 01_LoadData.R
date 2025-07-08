@@ -72,8 +72,13 @@ Ridges <- st_read("data/SR2.shp") %>%
 
 
 ##############  RASTERS
+# Loading 25 m resolution EU-DEM v.1.1 for Bulgaria
+# You can download the DEM from https://zenodo.org/records/15836257
 
-# Create a DEM of Territory and Territory2 using `geodata` library
+Territory <- raster(here("data, BG_DEM1.tif"))
+
+# Or
+# Create a 30 m resolution DEM of Territory2 and Territory3 using `geodata` library
 # Load rasters
 library(geodata)
 
@@ -95,15 +100,15 @@ extent <- Origo_Destino %>%
 mapview(extent)
 
 
-Territory2 <- dem %>% 
+Territory3 <- dem %>% 
   crop(st_transform(extent, 4326)) %>% 
   project("EPSG:32635")
 
-Territory <- dem %>% project("EPSG:32635")
+Territory2 <- dem %>% project("EPSG:32635")
 
 
 # View results
 
-mapview(aggregate(Territory, 10)) + mapview(extent) + mapview(Locations)
+mapview(aggregate(Territory2, 10)) + mapview(extent) + mapview(Locations)
 
-mapview(Territory2) + mapview(Origo_Destino)
+mapview(Territory3) + mapview(Origo_Destino)
