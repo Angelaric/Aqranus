@@ -150,6 +150,8 @@ mapview(Donuts, zcol = "color", layer.name = "Walking Range Donuts", alpha.regio
 
 # References
 
+Maqbul, Ahmad. 1992. ‘Cartography of Al-Sharīf al-Idrīsī’. In Cartography in the Traditional Islamic and South Asian Societies, edited by Brian Harley and David Woodward, 2:156–74. The History of Cartography 1. Chicago: University of Chicago Press. https://press.uchicago.edu/books/hoc/HOC_V2_B1/Volume2_Book1.html.
+
 Murrieta-Flores, Patricia. 2010. ‘Travelling in a Prehistoric Landscape: Exploring the Influences That Shaped Human Movement’. In Making History Interactive. Computer Applications and Quantitative Methods in Archaeology (CAA), edited by Bernard Fisher, Jane Crawford, and David Koller, 249–67. BAR International. Oxford: Archaeopress. https://doi.org/10.15496/PUBLIKATION-3314.
 
 Недков, Борис. 1960. ‘Въведение’. In България и съседните ѝ земи през XII в. според Идриси, edited by Борис Недков, 9–29. София: Наука и изкуство.
