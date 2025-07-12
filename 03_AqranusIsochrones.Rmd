@@ -17,17 +17,28 @@ knitr::opts_chunk$set(echo = TRUE,
 
 In these file we demonstrate the Walking Isochrones analysis. 
 
-Al-Idrisi measures distances using three main units: miles (sg. mīl, pl. mīlan or amyal, ), days of march (sg. yawm, pl. ayyām), and marches (sg. marḥalah, pl. marāḥil). Typically, he expresses short distances in miles and longer ones in days, although he is not entirely consistent. The exact value of these units is debated. It is generally accepted that one mile equals approximately 1,555 meters, a day’s march ranges between 23 and 25 miles, and a day of intensive travel can extend to 30–36 miles. The one-day trip measure varies depending on terrain and travel conditions. A marḥalah refers to the distance between two postal stations (manzil). As a term, it originates from the travels of caravans, typically covering about 7–8 hours of travel. In many translations of al-Idrisi’s work, marḥalah is rendered as “a day’s march”
+According to al-Idrisi, Aqranus was six marāḥil from Istibuni (modern-day Ihtiman, Western Bulgaria), 40 mīlān from Farui (modern-day Stara Zagora, Central Bulgaria), and four marāḥil from Lufisa (modern-day Lovech, Northern Bulgaria)
 
-In our analysis, we adopt Nedkov and others' interpretation for one mile of al-Idrisi as corresponding to approximately 1,555 meters and one marḥalah covering about 7–8 hours of travel (Недков 1960, 17). We use Murrieta-Flores’ average 4.9 km per hour for 20–60 year old men carrying nothing on his back (Murrieta-Flores 2010, 253). 
+Typically, he expresses short distances in miles and longer ones in days, although he is not entirely consistent. The exact value of these units is debated. It is generally accepted that one mile equals approximately 1,555 meters. A day of walk is usually translated as a distance, stretching from a moderate distance of 23 - 25 miles to intensive travel of 30–36 miles. A marching day originates from the travel of caravans. It is counted not in miles but rather as time, specifically 7–8 hours of travel.  Sometimes translators of al-Idrisi’s work do not differentiate between marḥalah and yawm, rendering both as distances equivalent to the “day of walk” (Недков 1960, 17; Maqbul 1992, 160).
 
-The following inputs represent the maximum time spent in marching to Aqranus from each of the three cities:
+In our analysis, we adopt Nedkov and others' interpretation for one mile of al-Idrisi as corresponding to approximately 1,555 meters and one marḥalah covering about 7–8 hours of travel (Недков 1960, 17). We use Murrieta-Flores’ average 4.9 km per hour for 20–60 year old men carrying nothing on his back (Murrieta-Flores 2010, 253). Applying these conversions, we derive the following modern equivalents:
 
-6 marches from Istibuni = 6 x 7 h ≈ 42 walking hours
-40 miles from Farui = 62.2 km ÷ 4.9 km/h = 12.6 walking hours
-4 marches from Lufisa = 4 x 7 h ≈ 28 walking hours
+6 marāḥil from Istibuni (Ihtiman) ≈ 6  ×  7 hours × 4.9 km/h ≈ 205.8 km 
 
-These values are used to generate walking-time isochrones around each reference city, with the boundary representing maximum reachable distance
+4 marāḥil from Lufisa (Lovech) ≈ 4 × 7 hours × 4.9 km/h ≈ 137.2 km
+
+40 mīlan from Farui (Stara Zagora) ≈ 40 miles × 1,555 km per mile ≈ 62.2 km
+
+In order to account for the friction of traversing the mountainous terrain in central Bulgaria, we calculate the cost of travel between the neighboring towns next. We have to convert al-Idrisi’s reported distances into estimated walking times. Al-Idrisi refers to ‘march’, which we translate into the walking speed of 4.9 km per hour, which is the average for a male pedestrian between 20 and 60 years of age (Murrieta-Flores 2010, 253). The following inputs represent the maximum time spent in marching to Aqranus from each of the three cities:
+
+6 marāḥil from Istibuni ≈ 6 x 7 h ≈ 42 walking hours
+
+4 marāḥil from Lufisa ≈ 4 x 7 h ≈ 28 walking hours
+
+40 mīlan from Farui ≈ 62.2 km ÷ 4.9 km/h ≈ 12.6 walking hours
+
+These values are used to generate walking-time isochrones around each reference city, with the boundary representing maximum reachable distance. 
+
 
 # First, load data and library
 
@@ -70,7 +81,7 @@ plot(TerAgg10); plot(Locations$geometry, cex=1, pch = 19, col=c("yellow","red", 
 ```{r iv}
 
 # Because we run the function in minutes, the calculations are as follows:
-# If Aqranus is 4 marches (marahil) from Lufisa (Lovech) ≈ 4 marahil x 7 h ≈ 28 h x 60 min = 1680 min.
+# If Aqranus is 4 marahil from Lufisa (Lovech) ≈ 4 marahil x 7 h ≈ 28 h x 60 min = 1680 min.
 
 LufisaIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
                        origin=as(Locations[1, ], "Spatial"),
@@ -104,7 +115,7 @@ FaruiIso$isolines %>%
 
 ```{r vi}
 
-# If Aqranus is 6 marahil (marches) from Istibuni (Ihtiman) ≈ 6 marahil x 7 h ≈ 42 h x 60 min ≈ 2520 min
+# If Aqranus is 6 marahil from Istibuni (Ihtiman) ≈ 6 marahil x 7 h ≈ 42 h x 60 min ≈ 2520 min
 
 IstibuniIso <- movebound(dtm=raster(Territory),  # use original raster as it's already lo-res at 30s
                          origin=as(Locations[3, ], "Spatial"),
@@ -133,6 +144,8 @@ plot(IstibuniIso$isolines, col="green", lwd=2, add = TRUE)
 ```
 
 # References
+
+Maqbul, Ahmad. 1992. ‘Cartography of Al-Sharīf al-Idrīsī’. In Cartography in the Traditional Islamic and South Asian Societies, edited by Brian Harley and David Woodward, 2:156–74. The History of Cartography 1. Chicago: University of Chicago Press. https://press.uchicago.edu/books/hoc/HOC_V2_B1/Volume2_Book1.html.
 
 Murrieta-Flores, Patricia. 2010. ‘Travelling in a Prehistoric Landscape: Exploring the Influences That Shaped Human Movement’. In Making History Interactive. Computer Applications and Quantitative Methods in Archaeology (CAA), edited by Bernard Fisher, Jane Crawford, and David Koller, 249–67. BAR International. Oxford: Archaeopress. https://doi.org/10.15496/PUBLIKATION-3314.
 
